@@ -142,3 +142,8 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }
+
+AUTHENTICATION_BACKENDS = [
+    'authentication.authentication.EmailBackend',  # Remplace par le chemin correct
+    'django.contrib.auth.backends.ModelBackend',  # En backup si besoin
+]
