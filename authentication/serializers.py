@@ -8,10 +8,8 @@ class UserSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class LoginSerializer(serializers.Serializer):
-    class Meta:
-        model: CustomUser
-        fields = ("id" ,"first_name", "last_name", "email", "password")
-
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
     def validate(self, data):
         email = data.get("email")
         password = data.get("password")
@@ -22,3 +20,26 @@ class LoginSerializer(serializers.Serializer):
         
         data['user'] = user
         return data
+    
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
+
+    class Meta :
+        model = CustomUser
+        fields = ('id','username','first_name', 'last_name', 'email', 'password')
+
+    def validate(self, profile_data):
+        if not profile_data:
+             raise serializers.ValidationError({ f"Les info du profil son requise"})
+
+        profile_data['profile_data'] = profile_data
+        return profile_data
+
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        profile_data= validated_data.pop('profile_data')
+
+        user = CustomUser(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user

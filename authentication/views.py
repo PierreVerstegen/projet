@@ -2,7 +2,7 @@ from django.shortcuts import redirect, render
 from django.contrib.auth import login, authenticate, logout
 from django.views.generic import View
 from rest_framework import viewsets
-from .serializers import LoginSerializer, UserSerializer
+from .serializers import LoginSerializer, RegisterSerializer, UserSerializer
 from .models import CustomUser
 from rest_framework.decorators import action, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -32,6 +32,11 @@ class UserViewSet(viewsets.ModelViewSet):
 
         return Response(data, status=status.HTTP_200_OK)
 
+    
+
     @action(detail=False, methods=['post'], url_path='register', permission_classes=[AllowAny])
     def register(self, request):
-        pass
+        serializer = RegisterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response(UserSerializer(user).data, status=201)

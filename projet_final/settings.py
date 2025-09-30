@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'authentication',
+    "corsheaders",
     'rest_framework_simplejwt'
 ]
 
@@ -49,6 +50,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware"
 ]
 
 ROOT_URLCONF = 'projet_final.urls'
@@ -147,3 +150,15 @@ AUTHENTICATION_BACKENDS = [
     'authentication.authentication.EmailBackend',  # Remplace par le chemin correct
     'django.contrib.auth.backends.ModelBackend',  # En backup si besoin
 ]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:4200/",  # Ton frontend Angular
+    "http://127.0.0.1:4200/",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:4200/",
+    "http://127.0.0.1:4200/",
+]
+
+CORS_ALLOW_ALL_ORIGINS = True
