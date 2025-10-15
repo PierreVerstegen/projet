@@ -2,12 +2,12 @@ from django.db import models
 
 from django.db import models
 from authentication.models import CustomUser
-from core.models import BaseEntity
+
 from django.core.validators import MinValueValidator #cette fcionalité m'a été suggérée par IA
 
 #TODO : ===========CECI EST UNE CLASSE ABSTRAITE PARENTE DE NPC ET PLAYER===============
 
-class Character(BaseEntity):# On utilise ABC pour indiquer que cette classe est abstraite ; NPC et Player en héritent.
+class Character():# On utilise ABC pour indiquer que cette classe est abstraite ; NPC et Player en héritent.
     """Abstract class for characters in a Game. Parent to NPC and Player classes"""
 
 # ========== Choice Fields ================
