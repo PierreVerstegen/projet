@@ -16,7 +16,7 @@ class LoginSerializer(serializers.Serializer):
 
         user = authenticate(email=email, password=password)
         if not user:
-            raise serializers.ValidationError("Identifiants invalide")
+            raise serializers.ValidationError("Invalid credentials")
         
         data['user'] = user
         return data
@@ -30,7 +30,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def validate(self, profile_data):
         if not profile_data:
-             raise serializers.ValidationError({ f"Les info du profil son requise"})
+             raise serializers.ValidationError({ f"Missing data"})
 
         profile_data['profile_data'] = profile_data
         return profile_data
@@ -43,3 +43,5 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
+    
+    
