@@ -28,7 +28,7 @@ class AbilitiesSerializer(serializers.ModelSerializer):
         model = Abilities
         fields = '__all__'
 
-class effectSerializer(serializers.ModelSerializer):
+class EffectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Effect
         fields = '__all__'
