@@ -68,6 +68,7 @@ class NPC(Character):
 #=============== META : tables, contraintes, indexes ========================
     class Meta:
         db_table = "npcs"  # Nom de la table dans la base de données ---> vient de l'IA ; à vérifier
+        abstract = False
 
 
 #TODO : =======CLASSES ENFANT : PLAYER ===================
@@ -90,7 +91,7 @@ class Player(Character):
 #=============== META : tables, contraintes, indexes ==========================
     class Meta:
         db_table = "players"  # Nom de la table dans la base de données ---> vient de l'IA ; à vérifier
-
+        abstract = False
 
 #TODO : =======ATTRIBUTES, ABILITIES AND EFFECTS===================
 
