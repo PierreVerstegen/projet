@@ -14,6 +14,6 @@ router.register(r'abilities', AbilitiesViewset, basename='ability')
 router.register(r'effects', EffectViewset, basename='effect')
 
 urlpatterns = [
-    path('', include(router.urls))
+    path('api/', include(router.urls))
     
 ]
