@@ -7,7 +7,7 @@ from django.core.validators import MinValueValidator #cette fcionalité m'a ét�
 
 #TODO : ===========CECI EST UNE CLASSE ABSTRAITE PARENTE DE NPC ET PLAYER===============
 
-class Character():# On utilise ABC pour indiquer que cette classe est abstraite ; NPC et Player en héritent.
+class Character(models.Model):# On utilise ABC pour indiquer que cette classe est abstraite ; NPC et Player en héritent.
     """Abstract class for characters in a Game. Parent to NPC and Player classes"""
 
 # ========== Choice Fields ================
@@ -60,7 +60,7 @@ class NPC(Character):
 
 #============= MANY TO MANY ===============================
     abilities = models.ManyToManyField(
-        'characters.Abilities',
+        'Abilities',
         related_name="npc",
         blank=True,
         help_text="Abilities possessed by this NPC.")
@@ -82,7 +82,7 @@ class Player(Character):
     
 #============= MANY TO MANY ===============================
     abilities = models.ManyToManyField(
-        'characters.Abilities',
+        'Abilities',
         related_name="player",
         blank=True,
         help_text="Abilities possessed by this player.")
@@ -109,13 +109,13 @@ class Attribute(models.Model):
 #============= MANY TO MANY ===============================
     
     players = models.ManyToManyField(
-        'characters.Player',
+        'Player',
         related_name="attributes", #permet d'accéder aux jeux associés à un joueur ou un PNJ via player.games.all() ou npc.games.all()
         blank=True,
         help_text="Players in the game."
     )
     npcs = models.ManyToManyField(
-        'characters.NPC',
+        'NPC',
         related_name="attributes", #permet d'accéder aux jeux associés à un joueur ou un PNJ via player.games.all() ou npc.games.all()
         blank=True,
         help_text="NPC in the game."
@@ -144,7 +144,7 @@ class Abilities(models.Model): #On va devoir peupler la table avec ttes les abil
 
 #============= MANY TO MANY ===============================
     effect = models.ManyToManyField(
-        'characters.Effect',
+        'Effect',
         related_name="ability",
         blank=True,
         help_text="Effects possessed by this ability.")
