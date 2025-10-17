@@ -12,7 +12,9 @@ class NPCViewset(viewsets.ModelViewSet) :
     serializer_class = NPCSerializer
     permission_classes = [IsAuthenticated] # ===> ici il va falloir restreindre au role 'MJ' !!!
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer): #you actually need to overwrite this method to effectively link one 
+        # created instance to a user ; it uses the JWT token to get 'user_id' ;
+        # the method assigns the value from the token to the right cell in the table
         # Set user_id to the authenticated user's ID
         serializer.save(user_id=self.request.user)
 
@@ -21,6 +23,8 @@ class PlayerViewset(viewsets.ModelViewSet) :
     serializer_class = PlayerSerializer
     permission_classes = [IsAuthenticated]
 
+    def perform_create(self, serializer):
+        serializer.save(user_id=self.request.user)
 class AttributeViewset(viewsets.ModelViewSet) :
     queryset = Attribute.objects.all()
     serializer_class = AttributeSerializer

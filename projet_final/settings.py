@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'authentication',
     'corsheaders',
     'rest_framework_simplejwt',
-    'characters'
+    'characters',
+    'games'
 ]
 
 MIDDLEWARE = [
