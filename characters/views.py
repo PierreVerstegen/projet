@@ -10,7 +10,7 @@ from .models import Character, NPC, Player, Attribute, Abilities, Effect
 class NPCViewset(viewsets.ModelViewSet) :
     queryset = NPC.objects.all()
     serializer_class = NPCSerializer
-    permission_classes = [AllowAny] # ===> ici il va falloir restreindre au role 'MJ' !!!
+    permission_classes = [IsAuthenticated] # ===> ici il va falloir restreindre au role 'MJ' !!!
 
 class PlayerViewset(viewsets.ModelViewSet) :
     queryset = Player.objects.all()
