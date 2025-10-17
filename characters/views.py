@@ -12,6 +12,10 @@ class NPCViewset(viewsets.ModelViewSet) :
     serializer_class = NPCSerializer
     permission_classes = [IsAuthenticated] # ===> ici il va falloir restreindre au role 'MJ' !!!
 
+    def perform_create(self, serializer):
+        # Set user_id to the authenticated user's ID
+        serializer.save(user_id=self.request.user)
+
 class PlayerViewset(viewsets.ModelViewSet) :
     queryset = Player.objects.all()
     serializer_class = PlayerSerializer
