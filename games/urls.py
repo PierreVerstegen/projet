@@ -8,7 +8,6 @@ router = DefaultRouter()
 
 router.register(r'games', GameViewset, basename='game')
 
-
 urlpatterns = [
     path('api/', include(router.urls))
     

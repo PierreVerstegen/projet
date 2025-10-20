@@ -76,7 +76,7 @@ class NPC(Character):
 
 
 class Player(Character):
-    """Represent one playable character"""
+    """Represents one playable character"""
 # ============== CLASS ATTRIBUTES ==================
     experience_points = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     
