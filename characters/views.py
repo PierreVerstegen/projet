@@ -1,12 +1,16 @@
-from datetime import timezone
+
 from django.shortcuts import get_object_or_404, render
 from rest_framework import viewsets
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 
-from characters.serializer import BrigandyneAttributeSerializer, NPCSerializer, PlayerSerializer, AttributeSerializer, AbilitiesSerializer, EffectSerializer
+from characters.serializer import BrigandyneAttributeSerializer, NPCSerializer, PlayerSerializer, AttributeSerializer, AbilitiesSerializer, EffectSerializer, BrigandyneCreateSerializer
 #comment utiliser cet élément du diable ?? Il faut que je manipule les roles en amont
 from rest_framework.response import Response
 from .models import Character, NPC, Player, Attribute, Abilities, Effect
+
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+from django.utils import timezone
 
 class NPCViewset(viewsets.ModelViewSet) :
     queryset = NPC.objects.all()
@@ -32,83 +36,76 @@ class PlayerViewset(viewsets.ModelViewSet) :
 
 # views.py
 class BrigandyneCharacterViewSet(viewsets.ViewSet):
-    
-    def create(self, request, *args, **kwargs):
-        # 1. Créer ou récupérer l'instance Attribute
-        attribute_id = request.data.get('attribute_id')
-        if attribute_id:
-            try:
-                attribute = Attribute.objects.get(id=attribute_id)
-            except Attribute.DoesNotExist:
-                return Response({"error": "Attribute non trouvé"}, status=404)
-        else:
-            attribute = Attribute()
-
-        # 2. Valider les données
-        serializer = self.get_serializer(data=request.data)
+    def create(self, request):
+        serializer = BrigandyneCreateSerializer(
+            data=request.data,
+            context={'user': request.user}
+        )
         serializer.is_valid(raise_exception=True)
-        raw_data = serializer.validated_data
+        data = serializer.validated_data
 
-        # 3. Calculer les stats dérivées
-        computed = serializer.compute_derived_stats(raw_data)
+        # 1. Créer le Player
+        player = Player(
+            charac_name=data['charac_name'],
+            charac_class=data['charac_class'],
+            charac_lvl=data.get('charac_lvl', 1),
+            charac_hp=data['computed']['pv'],
+            charac_money=data.get('charac_money', 0),
+            charac_bio=data.get('charac_bio', ''),
+            charac_model='BRIG',
+            user_id=request.user,
+            experience_points=0
+        )
+        player.save()
 
-        # 4. Structurer le JSON
-        brig_data = {
-            'raw': {
-                'combat': raw_data['combat'],
-                'connaissances': raw_data['connaissances'],
-                # ... tous les champs bruts
-                'race': raw_data.get('race'),
-                'is_important_npc': raw_data.get('is_important_npc', True),
-                'archetype': raw_data.get('archetype'),
-            },
-            'computed': computed,
-            'meta': {'updated_at': timezone.now().isoformat()}
+        # 2. Créer l'Attribute
+        attribute = Attribute.objects.create()
+        attribute.players.add(player)
+
+        # 3. Sauvegarder les stats Brigandyne
+        attribute.model_brig = {
+            'raw': data['raw'],
+            'computed': data['computed'],
+            'meta': {
+                'created_at': timezone.now().isoformat(),
+                'created_by': request.user.id
+            }
         }
-
-        # 5. Sauvegarder
-        attribute.model_brig = brig_data
         attribute.save()
 
-        # 6. Réponse
+        # 4. Lier les abilities
+        if 'abilities' in data:
+            ability_objs = Abilities.objects.filter(
+                ability_name__in=data['abilities'],
+                ability_source='BRIG'
+            )
+            player.abilities.add(*ability_objs)
+
+        # 5. Réponse
         return Response({
+            'player_id': player.id,
             'attribute_id': attribute.id,
-            'brigandyne': brig_data
+            'character': {
+                'name': player.charac_name,
+                'class': player.charac_class,
+                'level': player.charac_lvl,
+                'hp': player.charac_hp,
+                'stats': attribute.model_brig,
+                'abilities': [a.ability_name for a in player.abilities.filter(ability_source='BRIG')]
+            }
         }, status=status.HTTP_201_CREATED)
 
     def retrieve(self, request, pk=None):
-        attribute = get_object_or_404(Attribute, pk=pk)
+        player = Player.objects.get(id=pk, charac_model='BRIG')
+        attribute = player.attributes.first()
         return Response({
-            'attribute_id': attribute.id,
-            'brigandyne': attribute.model_brig
-        })
-
-    def update(self, request, *args, **kwargs):
-        # Même logique que create, mais on récupère l'objet existant
-        attribute = self.get_object()  # ← récupère via pk
-
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        raw_data = serializer.validated_data
-
-        computed = serializer.compute_derived_stats(raw_data)
-
-        brig_data = {
-            'raw': {k: raw_data[k] for k in [
-                'combat', 'connaissances', 'discretion', 'endurance', 'force',
-                'habilete', 'magie', 'mouvement', 'perception', 'sociabilite',
-                'survie', 'tir', 'volonte', 'race', 'is_important_npc', 'archetype'
-            ] if k in raw_data},
-            'computed': computed,
-            'meta': {'updated_at': timezone.now().isoformat()}
-        }
-
-        attribute.model_brig = brig_data
-        attribute.save()
-
-        return Response({
-            'attribute_id': attribute.id,
-            'brigandyne': brig_data
+            'player_id': player.id,
+            'character': {
+                'name': player.charac_name,
+                'hp': player.charac_hp,
+                'stats': attribute.model_brig,
+                'abilities': [a.ability_name for a in player.abilities.all()]
+            }
         })
 
 class AttributeViewset(viewsets.ModelViewSet) :

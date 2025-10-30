@@ -132,3 +132,70 @@ class BrigandyneAttributeSerializer(serializers.Serializer):
     def to_internal_value(self, data):
         # Permet d'utiliser le serializer comme un ModelSerializer
         return super().to_internal_value(data)
+    
+class BrigandyneCreateSerializer(serializers.Serializer):
+    # === Données de base ===
+    charac_name = serializers.CharField(max_length=100)
+    charac_class = serializers.CharField(max_length=100)
+    charac_lvl = serializers.IntegerField(min_value=1, required=False, default=1)
+    charac_money = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, default=0)
+    charac_bio = serializers.CharField(required=False, default="")
+
+    # === Stats Brigandyne ===
+    combat = serializers.IntegerField(min_value=0, max_value=100)
+    connaissances = serializers.IntegerField(min_value=0, max_value=100)
+    discretion = serializers.IntegerField(min_value=0, max_value=100)
+    endurance = serializers.IntegerField(min_value=0, max_value=100)
+    force = serializers.IntegerField(min_value=0, max_value=100)
+    habilete = serializers.IntegerField(min_value=0, max_value=100)
+    magie = serializers.IntegerField(min_value=0, max_value=50)  # max 50
+    mouvement = serializers.IntegerField(min_value=0, max_value=100)
+    perception = serializers.IntegerField(min_value=0, max_value=100)
+    sociabilite = serializers.IntegerField(min_value=0, max_value=100)
+    survie = serializers.IntegerField(min_value=0, max_value=100)
+    tir = serializers.IntegerField(min_value=0, max_value=100)
+    volonte = serializers.IntegerField(min_value=0, max_value=100)
+
+    race = serializers.CharField(max_length=50, required=False)
+    archetype = serializers.CharField(max_length=100, required=False)
+    abilities = serializers.ListField(
+    child=serializers.CharField(max_length=200),
+    required=False
+    )
+
+    # === Calculs ===
+    def get_pv(self, data):
+        base = data['endurance'] // 5 + data['force'] // 5
+        base += data['volonte'] // 5
+        return base
+
+    def validate(self, data):
+        # Magie ≤ 50
+        if data['magie'] > 50:
+            raise serializers.ValidationError({"magie": "Max 50"})
+
+        # Stats ≥ 15 (sauf magie)
+        for field in ['combat', 'connaissances', 'endurance', 'force', 'volonte']:
+            if data[field] < 15:
+                raise serializers.ValidationError({field: "Min 15"})
+
+        # Vérifier abilities existantes
+        if 'abilities' in data:
+            missing = set(data['abilities']) - set(
+                Abilities.objects.filter(
+                    ability_name__in=data['abilities'],
+                    ability_source='BRIG'
+                ).values_list('ability_name', flat=True)
+            )
+            if missing:
+                raise serializers.ValidationError({"abilities": f"Could not be found : {missing}"})
+
+        return data
+
+    def to_representation(self, instance):
+        # On ne retourne pas ici, on construit dans la vue
+        return {}
+
+    def save(self):
+        # On ne sauvegarde pas ici → vue s'en charge
+        pass
