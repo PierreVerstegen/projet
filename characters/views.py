@@ -49,7 +49,6 @@ class BrigandyneCharacterViewSet(viewsets.ViewSet):
             charac_name=data['charac_name'],
             charac_class=data['charac_class'],
             charac_lvl=data.get('charac_lvl', 1),
-            charac_hp=data['computed']['pv'],
             charac_money=data.get('charac_money', 0),
             charac_bio=data.get('charac_bio', ''),
             charac_model='BRIG',
@@ -60,18 +59,11 @@ class BrigandyneCharacterViewSet(viewsets.ViewSet):
 
         # 2. Créer l'Attribute
         attribute = Attribute.objects.create()
-        attribute.players.add(player)
-
+        attribute.players.add(player) # this links Players to Attribute
+        brig_data = serializer.save_to_attribute(attribute)
         # 3. Sauvegarder les stats Brigandyne
-        attribute.model_brig = {
-            'raw': data['raw'],
-            'computed': data['computed'],
-            'meta': {
-                'created_at': timezone.now().isoformat(),
-                'created_by': request.user.id
-            }
-        }
         attribute.save()
+        
 
         # 4. Lier les abilities
         if 'abilities' in data:
@@ -89,7 +81,6 @@ class BrigandyneCharacterViewSet(viewsets.ViewSet):
                 'name': player.charac_name,
                 'class': player.charac_class,
                 'level': player.charac_lvl,
-                'hp': player.charac_hp,
                 'stats': attribute.model_brig,
                 'abilities': [a.ability_name for a in player.abilities.filter(ability_source='BRIG')]
             }

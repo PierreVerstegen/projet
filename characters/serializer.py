@@ -106,23 +106,35 @@ class BrigandyneAttributeSerializer(serializers.Serializer):
 
     # === SAUVEGARDE DANS model_brig ===
     def save_to_attribute(self, attribute_instance):
-        """
-        Sauvegarde les données validées + calculées dans model_brig
-        """
-        # Copie des données brutes
+        data = self.validated_data
+
+        # Dictionnaire PLAT
         brig_data = {
-            'raw': {k: v for k, v in self.validated_data.items() if k in [
-                'combat', 'connaissances', 'discretion', 'endurance', 'force', 'habilete',
-                'magie', 'mouvement', 'perception', 'sociabilite', 'survie', 'tir', 'volonte',
-                'race', 'is_important_npc', 'archetype'
-            ]},
-            'computed': {
-                'pv': self.get_pv(self.validated_data),
-                'sang_froid': self.get_sang_froid(self.validated_data),
-                'init': self.get_init(self.validated_data),
-                'points_fortune': self.get_points_fortune(self.validated_data),
-            }
+            # Stats brutes
+            'combat': data['combat'],
+            'connaissances': data['connaissances'],
+            'discretion': data['discretion'],
+            'endurance': data['endurance'],
+            'force': data['force'],
+            'habilete': data['habilete'],
+            'magie': data['magie'],
+            'mouvement': data['mouvement'],
+            'perception': data['perception'],
+            'sociabilite': data['sociabilite'],
+            'survie': data['survie'],
+            'tir': data['tir'],
+            'volonte': data['volonte'],
+
+            # Métadonnées
+            'race': data.get('race', ''),
+            'archetype': data.get('archetype', ''),
+
+            # Calculés
+            'pv': self.get_pv(None),
+            'sang_froid': self.get_sang_froid(None),
+            'init': self.get_init(None)
         }
+
 
         # Sauvegarde dans le JSONField
         attribute_instance.model_brig = brig_data
@@ -141,7 +153,7 @@ class BrigandyneCreateSerializer(serializers.Serializer):
     charac_money = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, default=0)
     charac_bio = serializers.CharField(required=False, default="")
 
-    # === Stats Brigandyne ===
+    # === Attributs Brigandyne ===
     combat = serializers.IntegerField(min_value=0, max_value=100)
     connaissances = serializers.IntegerField(min_value=0, max_value=100)
     discretion = serializers.IntegerField(min_value=0, max_value=100)
@@ -156,30 +168,42 @@ class BrigandyneCreateSerializer(serializers.Serializer):
     tir = serializers.IntegerField(min_value=0, max_value=100)
     volonte = serializers.IntegerField(min_value=0, max_value=100)
 
-    race = serializers.CharField(max_length=50, required=False)
-    archetype = serializers.CharField(max_length=100, required=False)
-    abilities = serializers.ListField(
-    child=serializers.CharField(max_length=200),
-    required=False
-    )
+    # Métadonnées
+    race = serializers.CharField(max_length=50, allow_blank=True, required=False)
+    archetype = serializers.CharField(max_length=100, allow_blank=True, required=False)
 
-    # === Calculs ===
+    # Attributs calculés (ReadOnly)
+    pv = serializers.SerializerMethodField()
+    sang_froid = serializers.SerializerMethodField()
+    init = serializers.SerializerMethodField()
+    points_fortune = serializers.SerializerMethodField()
+    abilities = serializers.ListField(child=serializers.CharField(max_length=200), required=False)
+
+    # === Computed attributes ===
     def get_pv(self, data):
-        base = data['endurance'] // 5 + data['force'] // 5
-        base += data['volonte'] // 5
+        base = data['endurance'] // 5 + data['force'] // 5 + data['volonte'] // 5
         return base
+    
+    def get_sang_froid(self, obj):
+        return (obj['volonte'] // 5) + (obj['connaissances'] // 5) + (obj.get('bonus_combat', 0) or 0)
+    
+    def get_init(self, obj):
+        # Tu peux enrichir avec bonus d'archétype plus tard
+        return (obj.get('bonus_combat', 0) or 0) + (obj.get('bonus_mouvement', 0) or 0) + (obj.get('bonus_perception', 0) or 0)
+    
+
 
     def validate(self, data):
         # Magie ≤ 50
         if data['magie'] > 50:
             raise serializers.ValidationError({"magie": "Max 50"})
 
-        # Stats ≥ 15 (sauf magie)
-        for field in ['combat', 'connaissances', 'endurance', 'force', 'volonte']:
+        # Stats ≥ 15 (other than magie)
+        for field in ['combat', 'connaissances', 'discretion', 'endurance', 'habilete', 'force', 'mouvement', 'perception', 'sociabilite', 'survie', 'tir', 'volonte']:
             if data[field] < 15:
                 raise serializers.ValidationError({field: "Min 15"})
 
-        # Vérifier abilities existantes
+        # Check abilities
         if 'abilities' in data:
             missing = set(data['abilities']) - set(
                 Abilities.objects.filter(
@@ -192,10 +216,30 @@ class BrigandyneCreateSerializer(serializers.Serializer):
 
         return data
 
-    def to_representation(self, instance):
-        # On ne retourne pas ici, on construit dans la vue
-        return {}
+    # === SAUVEGARDE DANS model_brig ===
+    def save_to_attribute(self, attribute_instance):
+        """
+        Sauvegarde les données validées + calculées dans model_brig
+        """
+        # Copie des données brutes
+        brig_data = {
+            'raw': {k: v for k, v in self.validated_data.items() if k in [
+                'combat', 'connaissances', 'discretion', 'endurance', 'force', 'habilete',
+                'magie', 'mouvement', 'perception', 'sociabilite', 'survie', 'tir', 'volonte',
+                'race', 'archetype'
+            ]},
+            'computed': {
+                'pv': self.get_pv(self.validated_data),
+                'sang_froid': self.get_sang_froid(self.validated_data),
+                'init': self.get_init(self.validated_data),
+            }
+        }
 
-    def save(self):
-        # On ne sauvegarde pas ici → vue s'en charge
-        pass
+        # Sauvegarde dans le JSONField
+        attribute_instance.model_brig = brig_data
+        attribute_instance.save()
+        return brig_data
+    
+    def to_internal_value(self, data):
+        # Permet d'utiliser le serializer comme un ModelSerializer
+        return super().to_internal_value(data)

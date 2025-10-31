@@ -31,7 +31,6 @@ class Character(models.Model):# On utilise ABC pour indiquer que cette classe es
     charac_name=models.CharField(max_length = 100)
     charac_class=models.CharField(max_length = 100)
     charac_lvl=models.IntegerField(validators=[MinValueValidator(1)])
-    charac_hp=models.IntegerField(validators=[MinValueValidator(0)])
     charac_money=models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], default = 0.00)
     charac_model=models.CharField(max_length=10, choices=Charac_model.choices, default=Charac_model.DND,)
     charac_bio=models.TextField(blank=True, default="")
