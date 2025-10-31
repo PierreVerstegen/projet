@@ -58,8 +58,7 @@ class BrigandyneCharacterViewSet(viewsets.ViewSet):
         player.save()
 
         # 2. Créer l'Attribute
-        attribute = Attribute.objects.create()
-        attribute.players.add(player) # this links Players to Attribute
+        attribute = Attribute.objects.create(player=player) # this links Players to Attribute
         brig_data = serializer.save_to_attribute(attribute)
         # 3. Sauvegarder les stats Brigandyne
         attribute.save()
@@ -93,7 +92,6 @@ class BrigandyneCharacterViewSet(viewsets.ViewSet):
             'player_id': player.id,
             'character': {
                 'name': player.charac_name,
-                'hp': player.charac_hp,
                 'stats': attribute.model_brig,
                 'abilities': [a.ability_name for a in player.abilities.all()]
             }

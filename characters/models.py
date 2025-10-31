@@ -107,15 +107,19 @@ class Attribute(models.Model):
     
 #============= MANY TO MANY ===============================
     
-    players = models.ManyToManyField(
+    player = models.OneToOneField(
         'Player',
-        related_name="attributes", #permet d'accéder aux jeux associés à un joueur ou un PNJ via player.games.all() ou npc.games.all()
+        on_delete=models.CASCADE,
+        related_name='attribute',  # on accède via player.attribute
+        null=True,
         blank=True,
-        help_text="Players in the game."
+        help_text="The player linked to this attribute block."
     )
-    npcs = models.ManyToManyField(
+    npcs = models.OneToOneField(
         'NPC',
-        related_name="attributes", #permet d'accéder aux jeux associés à un joueur ou un PNJ via player.games.all() ou npc.games.all()
+        on_delete=models.CASCADE,
+        related_name="attributes",
+        null=True, #permet d'accéder aux jeux associés à un joueur ou un PNJ via player.games.all() ou npc.games.all()
         blank=True,
         help_text="NPC in the game."
     )
