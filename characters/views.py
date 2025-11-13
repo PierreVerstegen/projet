@@ -76,7 +76,7 @@ class BrigandyneCharacterViewSet(viewsets.ViewSet):
             'attribute_id': attribute.id,
             'character': {
                 'name': player.charac_name,
-                'class': player.charac_class,
+                'charac_class': player.charac_class,
                 'level': player.charac_lvl,
                 'stats': attribute.model_brig,
                 'abilities': [a.ability_name for a in player.abilities.filter(ability_source='BRIG')]
@@ -91,6 +91,8 @@ class BrigandyneCharacterViewSet(viewsets.ViewSet):
             'player_id': player.id,
             'character': {
                 'name': player.charac_name,
+                'charac_class': player.charac_class,
+                'level': player.charac_lvl,
                 'stats': attribute.model_brig if attribute else {},
                 'abilities': [a.ability_name for a in player.abilities.all()]
             }
@@ -106,6 +108,13 @@ class BrigandyneCharacterViewSet(viewsets.ViewSet):
                 'character': {
                     'name': p.charac_name,
                     'stats': attribute.model_brig if attribute else {},
+                    'charac_class': p.charac_class,
+                    'level': p.charac_lvl,
+                    'charac_money': p.charac_money,
+                    'charac_bio' : p.charac_bio,
+                    'charac_model' : p.charac_model,
+                    'experience_points' : p.experience_points,
+                    'user_id' : p.user_id,
                     'abilities': [a.ability_name for a in p.abilities.all()]
                 }
             })
