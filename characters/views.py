@@ -1,16 +1,14 @@
 
 from django.shortcuts import get_object_or_404, render
-from rest_framework import viewsets
+from django.utils import timezone
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
-
-from characters.serializer import BrigandyneAttributeSerializer, NPCSerializer, PlayerSerializer, AttributeSerializer, AbilitiesSerializer, EffectSerializer, BrigandyneCreateSerializer
-#comment utiliser cet élément du diable ?? Il faut que je manipule les roles en amont
-from rest_framework.response import Response
-from .models import Character, NPC, Player, Attribute, Abilities, Effect
-
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from django.utils import timezone
+
+from characters.serializer import BrigandyneAttributeSerializer, NPCSerializer, PlayerSerializer, AttributeSerializer, AbilitiesSerializer, EffectSerializer, BrigandyneCreateSerializer
+from .models import Character, NPC, Player, Attribute, Abilities, Effect
+
+
 
 class NPCViewset(viewsets.ModelViewSet) :
     queryset = NPC.objects.all()
@@ -86,16 +84,32 @@ class BrigandyneCharacterViewSet(viewsets.ViewSet):
         }, status=status.HTTP_201_CREATED)
 
     def retrieve(self, request, pk=None):
-        player = Player.objects.get(id=pk, charac_model='BRIG')
-        attribute = player.attributes.first()
+        player = get_object_or_404(Player, id=pk, charac_model='BRIG')
+        attribute = getattr(player, 'attribute', None)
+
         return Response({
             'player_id': player.id,
             'character': {
                 'name': player.charac_name,
-                'stats': attribute.model_brig,
+                'stats': attribute.model_brig if attribute else {},
                 'abilities': [a.ability_name for a in player.abilities.all()]
             }
         })
+
+    def list(self, request):
+        players = Player.objects.filter(charac_model='BRIG')
+        data = []
+        for p in players:
+            attribute = getattr(p, 'attribute', None)
+            data.append({
+                'player_id': p.id,
+                'character': {
+                    'name': p.charac_name,
+                    'stats': attribute.model_brig if attribute else {},
+                    'abilities': [a.ability_name for a in p.abilities.all()]
+                }
+            })
+        return Response(data)
 
 class AttributeViewset(viewsets.ModelViewSet) :
     queryset = Attribute.objects.all()

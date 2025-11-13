@@ -74,7 +74,7 @@ class BrigandyneAttributeSerializer(serializers.Serializer):
         return (obj['volonte'] // 5) + (obj['connaissances'] // 5) + (obj.get('bonus_combat', 0) or 0)
 
     def get_init(self, obj):
-        # Tu peux enrichir avec bonus d'archétype plus tard
+        # à fixer : bonus_combat etc n'existent pas, il s'agit de la dizaine de la stat en question
         return (obj.get('bonus_combat', 0) or 0) + (obj.get('bonus_mouvement', 0) or 0) + (obj.get('bonus_perception', 0) or 0)
 
     def get_points_fortune(self, obj):
