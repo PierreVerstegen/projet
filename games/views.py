@@ -54,16 +54,15 @@ class GameViewset(viewsets.ModelViewSet) :
         games = Game.objects.all()
         data = []
         for g in games :
-            user = getattr(g, 'games_mastered', None)
-            players = getattr(g, 'players', None)
-            npcs = getattr(g, 'npcs', None)
+            game_master = g.game_master_id
             data.append({
                 'game_id': g.id,
                 'game_name' : g.game_name,
                 'game_started_on': g.game_started_on,
                 'game_theme' : g.game_theme,
                 'game_rules' : g.game_model,
-                'game_master' : user.user_name,
-                'players' : [p.charac_name for p in players] if players else [],
-                'npcs' : [n.charac_name for n in npcs] if npcs else []
+                'game_master' : game_master.username,
+                'players': [p.charac_name for p in g.players.all()],      # ← .all() obligatoire ici
+                'npcs': [n.charac_name for n in g.npcs.all()],
             })
+        return Response(data)
