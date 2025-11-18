@@ -21,6 +21,13 @@ class Game(models.Model):
         HISTORICAL = 'HISTORICAL', 'Historical'
         CUSTOM = 'CUSTOM', 'Custom'
 
+    class Game_model(models.TextChoices):
+        """Supported game systems"""
+        DND = 'DND', 'Dungeons & Dragons'
+        CTHULHU = 'CTHU', 'Call of Cthulhu'
+        BRIG = 'BRIG', 'Brigandyne'
+        DCC = 'DCC', 'Dungeon Crawler Classic'
+        HMB = 'HMB', 'Homebrew system'
 
 
     game_theme = game_theme = models.CharField(
@@ -30,7 +37,7 @@ class Game(models.Model):
         help_text="Game theme"
     )
 
-    
+    game_model = models.CharField(max_length=10, choices=Game_model.choices, default=Game_model.DND,)
 
     game_started_on = models.DateTimeField(auto_now_add=True) 
 #===============FOREIGN KEY ================================
@@ -68,8 +75,8 @@ class Game(models.Model):
             )
         ]
         indexes = [
-            models.Index(fields=['game_name']),
-            models.Index(fields=['game_theme']),
+            models.Index(fields=['game_name', 'game_theme', 'game_model'])
+            
         ]
 #===============METHODS============================================================
        # Va-t-on utiliser des methods ou des views ? 

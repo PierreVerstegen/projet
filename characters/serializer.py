@@ -1,4 +1,6 @@
 from rest_framework import serializers
+
+from authentication.serializers import UserSerializer
 from .models import Character, NPC, Player, Attribute, Abilities, Effect
 from django.contrib.auth import authenticate
 
@@ -10,11 +12,13 @@ class CharacterSerializer(serializers.ModelSerializer):
 # je ne sais pas si c'est pertinent vu que c'est une classe abstraite mais bon
 
 class NPCSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = NPC
         fields = '__all__'
         read_only_fields = ['user_id']
 class PlayerSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = Player
         fields = '__all__'

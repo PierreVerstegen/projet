@@ -8,3 +8,4 @@ class CustomUser(AbstractUser):
     updatedat = models.DateTimeField(auto_now=True)
     deletedat = models.DateTimeField(null=True, blank=True)
     active = models.BooleanField(default=True, name='active')
+

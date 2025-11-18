@@ -86,9 +86,9 @@ class BrigandyneCharacterViewSet(viewsets.ViewSet):
     def retrieve(self, request, pk=None):
         player = get_object_or_404(Player, id=pk, charac_model='BRIG')
         attribute = getattr(player, 'attribute', None)
-
+        
         return Response({
-            'player_id': player.id,
+            
             'character': {
                 'name': player.charac_name,
                 'charac_class': player.charac_class,
@@ -103,8 +103,9 @@ class BrigandyneCharacterViewSet(viewsets.ViewSet):
         data = []
         for p in players:
             attribute = getattr(p, 'attribute', None)
+            
             data.append({
-                'player_id': p.id,
+                
                 'character': {
                     'name': p.charac_name,
                     'stats': attribute.model_brig if attribute else {},
@@ -114,7 +115,7 @@ class BrigandyneCharacterViewSet(viewsets.ViewSet):
                     'charac_bio' : p.charac_bio,
                     'charac_model' : p.charac_model,
                     'experience_points' : p.experience_points,
-                    'user_id' : p.user_id,
+                    # 'user_id' : p.user_id,
                     'abilities': [a.ability_name for a in p.abilities.all()]
                 }
             })
