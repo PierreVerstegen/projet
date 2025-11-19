@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 
-from characters.serializer import BrigandyneAttributeSerializer, NPCSerializer, PlayerSerializer, AttributeSerializer, AbilitiesSerializer, EffectSerializer, BrigandyneCreateSerializer
+from characters.serializer import NPCSerializer, PlayerSerializer, AttributeSerializer, AbilitiesSerializer, EffectSerializer, BrigandyneCreateSerializer
 from .models import Character, NPC, Player, Attribute, Abilities, Effect
 
 
@@ -105,7 +105,7 @@ class BrigandyneCharacterViewSet(viewsets.ViewSet):
             attribute = getattr(p, 'attribute', None)
             
             data.append({
-                
+                'player_id': p.id,
                 'character': {
                     'name': p.charac_name,
                     'stats': attribute.model_brig if attribute else {},
